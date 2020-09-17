@@ -27,3 +27,7 @@ work_path=d:\\dir_statistic_work	统计csv结果输出的目录
 > 数据库
 1. config/dir_statistic.sql
 2. sql对应的oracle数据库，可根据自己的需要更改sql
+
+## 脚本执行
+1. 修改配置 config/config.ini
+2. 可源码执行 **start.py**:  python ./start.py
