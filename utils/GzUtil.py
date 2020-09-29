@@ -105,7 +105,7 @@ def file_to_gz(source_file, gz_file=None):
         gz_file = source_file + '.gz'
     if gz_file is not None and gz_file.lower().endswith(".gz") and not gz_file.lower().endswith(".tar.gz"):
         f_in = open(source_file, "rb")  # 打开文件
-        f_out = gzip.open(gz_file, "w")  # 创建压缩文件对象
+        f_out = gzip.open(gz_file, "wb")  # 创建压缩文件对象
         f_out.writelines(f_in)
         f_out.close()
         f_in.close()
@@ -119,9 +119,9 @@ def gz_to_file(source_file, output_file=None):
         if output_file is None:
             # output_file = os.path.splitext(source_file)[0]    # 获取文件名
             output_file = re.sub(r'\.gz$', "", source_file, flags=re.IGNORECASE)
-        f_out = open(output_file, "w")  # 打开解压后内容保存的文件
+        f_out = open(output_file, "wb")  # 打开解压后内容保存的文件
         file_content = f.read()  # 读取解压后文件内容
-        f_out.write(file_content.decode("utf-8"))  # 写入新文件当中
+        f_out.write(file_content)  # 写入新文件当中
         f.close()  # 关闭文件流
         f_out.close()
     else:

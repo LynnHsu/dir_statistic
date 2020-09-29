@@ -39,7 +39,8 @@ class Run(object):
             self.logger.error(ex, exc_info=1)
             # logging.error("出现如下异常%s" % ex)
         finally:
-            self.logger.info("task finish... total_num: %d, trace_num: %d " % (self.total_num, self.trace_num))
+            self.logger.info("task finish... total_num: %d, trace_num: %d, deleted: %d "
+                             % (self.total_num, self.trace_num, self.deleted))
 
     def __init__(self, logger=None):
 
@@ -47,6 +48,7 @@ class Run(object):
         # 脚本中使用到的参数 [[
         self.total_num = 0
         self.trace_num = 0
+        self.deleted = 0
         self.config = configparser.ConfigParser()
         self.now: datetime
         self.batch_no: str
@@ -106,7 +108,8 @@ class Run(object):
                     arr_analysis[7] += 1
                     if self.delete_zero_file:
                         FileUtil.remove_file(temp_path)
-                        self.logger.info("deleted empty file: " + temp_path)
+                        self.deleted += 1
+                        self.logger.debug("deleted empty file: " + temp_path)
                     pass
                 else:
                     # 逆向开始 [[ 将 tar.gz -> zip, gz -> file
@@ -236,17 +239,18 @@ class Run(object):
                     FileUtil.format2MB(arr_analysis[2]), arr_analysis[7], arr_analysis[3],
                     (datetime.now()).strftime('%Y-%m-%d %H:%M:%S')]
             _rows.append(_row)
+            _logger.debug("end - %s ,%s" % (_curr_path, _row))
             self.total_num += 1
             if _rows.__len__() == 500:
                 temp_rows = _rows.copy()
                 CsvUtil.write(self.work_csv, [], temp_rows)
-                self.logger.info("csv export 500.")
+                self.logger.info(
+                    "csv export 500. current trace num: " + self.trace_num + ". has deleted: " + self.deleted)
                 _rows.clear()
         arr = [arr_analysis[0], arr_analysis[1], arr_analysis[2], arr_analysis[3]]
-        _logger.debug("end - %s ,%s" % (_curr_path, _row))
         self.trace_num += 1
         if self.trace_num % 10000 == 0:
-            _logger.info("current trace num: %d %s" % (self.trace_num, _curr_path))
+            _logger.info("current trace num: %d, deleted: %d, %s" % (self.trace_num, self.deleted, _curr_path))
         return arr
 
     '''
