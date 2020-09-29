@@ -25,6 +25,12 @@ max_level=2		统计的最大level
 
 [WORK_SPACE]
 work_path=d:\\dir_statistic_work	统计csv结果输出的目录
+
+[control]
+file_to_gz=True		True: 开启文件压缩
+zip_to_gz=False		True: 开启zip转换为tar.gz
+delete_zero_file=False	True: 开启删除空文件
+recover=False		False: 正向压缩，True: 反向解压恢复
 ```
 
 > 生成的结果
