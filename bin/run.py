@@ -14,10 +14,11 @@
 import configparser
 import os
 import logging
+import re
 import sys
 from datetime import datetime
 
-from utils import ConfigUtil, CsvUtil, FileUtil
+from utils import ConfigUtil, CsvUtil, FileUtil, ZipUtil, GzUtil
 
 curr_package = "bin.run"
 
@@ -61,6 +62,11 @@ class Run(object):
         # self.bin_path = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
         # self.project_path = os.path.dirname(self.bin_path)
         self.project_path = os.getcwd()
+
+        self.file_to_gz = False  # 文件做gz压缩
+        self.zip_to_gz = False  # zip转换成gz
+        self.delete_zero_file = False  # 删除空文件
+        self.recover = False  # True: 正向压缩， False: 反向恢复（tar.gz -> zip, gz -> file, 空文件无法恢复）
         # 脚本中使用到的参数 ]]
 
         self.now = datetime.now()  # 全局变量，最先初始化
@@ -79,8 +85,7 @@ class Run(object):
         self.init_variate()
         pass
 
-    @staticmethod
-    def func_loop_file_names(arr_analysis, loop_dir_path, loop_file_names):
+    def func_loop_file_names(self, arr_analysis, loop_dir_path, loop_file_names):
         """
         遍历文件
         :param arr_analysis: 统计内容数组
@@ -99,8 +104,53 @@ class Run(object):
                 if _temp_size == 0:
                     # _zero_num += 1
                     arr_analysis[7] += 1
+                    if self.delete_zero_file:
+                        FileUtil.remove_file(temp_path)
+                        self.logger.info("deleted empty file: " + temp_path)
                     pass
-                pass
+                else:
+                    # 逆向开始 [[ 将 tar.gz -> zip, gz -> file
+                    if self.recover and ext == 'gz':
+                        if temp_path.endswith(".tar.gz"):
+                            if self.zip_to_gz:
+                                _temp_parent_dir = GzUtil.unzip_tar_gz(temp_path, os.path.dirname(temp_path))
+                                _temp_zip_dir = os.path.join(_temp_parent_dir,
+                                                             re.sub(r'\.tar\.gz$', "", os.path.basename(temp_path),
+                                                                    flags=re.IGNORECASE))
+                                if _temp_zip_dir.endswith("_zip") and os.path.exists(_temp_zip_dir):
+                                    # TODO 反向转换zip包内的zip压缩文件（递归解决）
+                                    # 压缩成zip
+                                    _temp_zip_file = re.sub(r'_zip$', "", _temp_zip_dir, flags=re.IGNORECASE) + ".zip"
+                                    ZipUtil.zip_dir(_temp_zip_dir, _temp_zip_file)
+                                    FileUtil.remove_file(_temp_zip_dir)
+                                FileUtil.remove_file(temp_path)
+                        else:
+                            if self.file_to_gz:
+                                # gz 直接解压为文件
+                                GzUtil.gz_to_file(temp_path)
+                                FileUtil.remove_file(temp_path)
+                    # 逆向结束 ]]
+
+                    # 如果为 zip 文件，解压后，压缩为 gz
+                    # 正向压缩 [[
+                    if (not self.recover) and self.zip_to_gz and ext == "zip":
+                        self.logger.info("zip to gz: " + temp_path)
+                        """
+                        1. 解压
+                        2. tar.gz压缩
+                        3. 删除zip
+                        """
+                        temp_zip_dir = re.sub(r'\.zip$', "", temp_path, flags=re.IGNORECASE) + "_zip"
+                        ZipUtil.un_zip(temp_path, temp_zip_dir)
+                        # TODO 转换zip包内的zip压缩文件（递归解决）
+                        temp_gz_file = temp_zip_dir + ".tar.gz"
+                        GzUtil.make_tar_gz(temp_zip_dir, temp_gz_file)
+                        FileUtil.remove_file(temp_zip_dir)
+                        FileUtil.remove_file(temp_path)
+                    if (not self.recover) and self.file_to_gz and ext != "zip" and ext != 'gz':
+                        GzUtil.file_to_gz(temp_path, temp_path + ".gz")
+                        FileUtil.remove_file(temp_path)
+                    # 正向压缩 ]]
             pass
         pass
 
@@ -263,6 +313,11 @@ class Run(object):
         self.pc = ConfigUtil.get(self.config, 'TARGET', 'pc', self.logger)
         self.description = ConfigUtil.get(self.config, 'TARGET', 'description', self.logger)
         self.work_path = ConfigUtil.get(self.config, 'WORK_SPACE', 'work_path', self.logger)
+
+        self.file_to_gz = ConfigUtil.getboolean(self.config, 'control', 'file_to_gz', self.logger)
+        self.zip_to_gz = ConfigUtil.getboolean(self.config, 'control', 'zip_to_gz', self.logger)
+        self.delete_zero_file = ConfigUtil.getboolean(self.config, 'control', 'delete_zero_file', self.logger)
+        self.recover = ConfigUtil.getboolean(self.config, 'control', 'recover', self.logger)
 
         self.work_csv = os.path.join(os.path.abspath(self.work_path),
                                      (self.pc + '-' + self.description + '-' + self.batch_no + ".csv"))

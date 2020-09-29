@@ -14,3 +14,9 @@ def getint(config, section, key, logger):
     val = config.getint(section, key)
     logger.info("config.ini - %s.%s: %s" % (section, key, val))
     return val
+
+
+def getboolean(config, section, key, logger):
+    val = config.getboolean(section, key)
+    logger.info("config.ini - %s.%s: %s" % (section, key, val))
+    return val

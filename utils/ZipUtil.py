@@ -3,7 +3,7 @@ import re
 import zipfile
 
 # 解压到指定目录
-from utils import FileUtil
+from utils import FileUtil, GzUtil
 
 
 def names_solve(folder_path):
@@ -67,7 +67,12 @@ def zip_dir(srcPath, targetZipFile):
     z.close()
 
 
-# zip_dir(r"D:\dir_statistic_work1\dir_statistic_work\dev-portal-hub-NO_20200918101105.csv", "D:\\3335.zip")
-un_zip("D:\\1\\22.zip", "d:\\1\\22_zip")
-# un_zip("D:\\1\\22.zip")
-zip_dir("d:\\1\\22_zip", "D:\\1\\221.zip")
+#
+# # zip_dir(r"D:\dir_statistic_work1\dir_statistic_work\dev-portal-hub-NO_20200918101105.csv", "D:\\3335.zip")
+# un_zip("D:\\1\\22.zip", "d:\\1\\22_zip")
+# GzUtil.make_tar_gz("d:\\1\\22_zip", "d:\\1\\22_zip.tar.gz")
+# GzUtil.unzip_tar_gz("d:\\1\\22_zip.tar.gz", "d:\\1")
+# zip_dir("d:\\1\\22_zip", "d:\\1\\444.zip")
+# # un_zip("D:\\1\\22.zip")
+# # zip_dir("d:\\1\\22_zip", "D:\\1\\221.zip")
+# GzUtil.file_to_gz("d:\\dk\\client-performs-0.0.1-SNAPSHOT.jar", "d:\\dk\\zzz.gz")

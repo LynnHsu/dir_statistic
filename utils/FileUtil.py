@@ -45,4 +45,4 @@ def remove_file(path):
         if os.path.isfile(path):
             os.remove(path)
         else:
-            os.removedirs(path)
+            shutil.rmtree(path)

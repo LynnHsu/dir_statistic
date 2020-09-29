@@ -89,7 +89,6 @@ def unzip_tar_gz(src_dir, des_dir=None, src_root=None, isDelete=False):
         for file in files:
             dir_tmp = os.path.join(src_dir, file)
             new_path = dir_tmp.replace(src_root, des_dir)
-            print(src_dir+"|"+dir_tmp+"|"+new_path)
             parent_path = os.path.dirname(new_path)
             if not os.path.exists(parent_path):
                 os.makedirs(parent_path)
@@ -97,7 +96,7 @@ def unzip_tar_gz(src_dir, des_dir=None, src_root=None, isDelete=False):
 
     if isDelete:
         FileUtil.remove_file(src_dir)
-    return 0
+    return temp_dir_file
 
 
 # 单文件压缩
